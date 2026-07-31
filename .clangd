@@ -1,2 +1,19 @@
 CompileFlags:
-  Add: [-mfpmath=sse -msse -msse2 -I/nix/store/si1yh0sxp22fbd8qzghcfpd652cmna3a-gtk4-4.22.4-dev/include/gtk-4.0 -I/nix/store/3h6xnv0614bd6q4x57sjlrxy0hhshkkg-cairo-1.18.4-dev/include/cairo -I/nix/store/qmajm5vxiwziaw4d34d5mwiy39d65wj4-freetype-2.14.3-dev/include/freetype2 -I/nix/store/qmajm5vxiwziaw4d34d5mwiy39d65wj4-freetype-2.14.3-dev/include -I/nix/store/593rzz2xs5i67biyv2hz898j6v5ylms0-glib-2.88.1-dev/include -I/nix/store/593rzz2xs5i67biyv2hz898j6v5ylms0-glib-2.88.1-dev/include/glib-2.0 -I/nix/store/y3z5sr16sxd50bgcn2zkn46afn8fy0na-glib-2.88.1/lib/glib-2.0/include -I/nix/store/kkx7d3mplnqb1p78xaabvbnmsci4k2fb-gdk-pixbuf-2.44.6-dev/include/gdk-pixbuf-2.0 -I/nix/store/jclpfrbf4f8vnnn5ydq0794sbvklmh9l-graphene-1.10.8-dev/include/graphene-1.0 -I/nix/store/x805v1s6xn8xgbz8688pq53g7gki3a0a-graphene-1.10.8/lib/graphene-1.0/include -I/nix/store/i54snrx1bkzvzyil5ybzpgp6brviqbvd-pango-1.57.1-dev/include/pango-1.0 -I/nix/store/ydrx7d5vkrzsa4jcjxihskxi1ydpwh3l-harfbuzz-13.2.1-dev/include/harfbuzz -I/nix/store/k64ma43a3gh3k3w4hd274dgqjp16yw3i-vulkan-headers-1.4.350.0/include]
+  Add:
+    - -mfpmath=sse
+    - -msse
+    - -msse2
+    - -I/nix/store/si1yh0sxp22fbd8qzghcfpd652cmna3a-gtk4-4.22.4-dev/include/gtk-4.0
+    - -I/nix/store/3h6xnv0614bd6q4x57sjlrxy0hhshkkg-cairo-1.18.4-dev/include/cairo
+    - -I/nix/store/qmajm5vxiwziaw4d34d5mwiy39d65wj4-freetype-2.14.3-dev/include/freetype2
+    - -I/nix/store/qmajm5vxiwziaw4d34d5mwiy39d65wj4-freetype-2.14.3-dev/include
+    - -I/nix/store/593rzz2xs5i67biyv2hz898j6v5ylms0-glib-2.88.1-dev/include
+    - -I/nix/store/593rzz2xs5i67biyv2hz898j6v5ylms0-glib-2.88.1-dev/include/glib-2.0
+    - -I/nix/store/y3z5sr16sxd50bgcn2zkn46afn8fy0na-glib-2.88.1/lib/glib-2.0/include
+    - -I/nix/store/kkx7d3mplnqb1p78xaabvbnmsci4k2fb-gdk-pixbuf-2.44.6-dev/include/gdk-pixbuf-2.0
+    - -I/nix/store/jclpfrbf4f8vnnn5ydq0794sbvklmh9l-graphene-1.10.8-dev/include/graphene-1.0
+    - -I/nix/store/x805v1s6xn8xgbz8688pq53g7gki3a0a-graphene-1.10.8/lib/graphene-1.0/include
+    - -I/nix/store/i54snrx1bkzvzyil5ybzpgp6brviqbvd-pango-1.57.1-dev/include/pango-1.0
+    - -I/nix/store/ydrx7d5vkrzsa4jcjxihskxi1ydpwh3l-harfbuzz-13.2.1-dev/include/harfbuzz
+    - -I/nix/store/k64ma43a3gh3k3w4hd274dgqjp16yw3i-vulkan-headers-1.4.350.0/include
+    - -I/nix/store/q5wv2ldpcv5w8yb2wmsngsygvlxb73fk-glibc-2.42-67-dev/include
