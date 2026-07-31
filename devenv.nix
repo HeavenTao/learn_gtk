@@ -8,7 +8,13 @@
   # https://devenv.sh/basics/
 
   # https://devenv.sh/packages/
-  packages = [pkgs.cmake pkgs.gtk4 pkgs.gtk4.dev];
+  packages = [
+    pkgs.cmake
+    pkgs.gtk4
+    pkgs.gtk4.dev
+    pkgs.clang
+    pkgs.ninja
+  ];
 
   # https://devenv.sh/languages/
   # languages.rust.enable = true;
@@ -26,8 +32,6 @@
 
   # https://devenv.sh/basics/
   enterShell = ''
-    echo ${pkgs.gtk4}
-    echo ${pkgs.gtk4.dev}
   '';
 
   # https://devenv.sh/tasks/
