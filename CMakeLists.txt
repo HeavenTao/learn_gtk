@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 
+# 导出编译数据库，供 clangd 使用（解决头文件被按 C++ 误解析的问题）
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # 指定使用 clang 编译（必须在 project() 之前设置）
 set(CMAKE_C_COMPILER clang)
 

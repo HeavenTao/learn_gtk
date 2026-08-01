@@ -29,6 +29,14 @@
   # scripts.hello.exec = ''
   #   echo hello from $GREET
   # '';
+  scripts.build.exec = ''
+    cmake -B ./build -G Ninja
+    cmake --build ./build
+  '';
+
+  scripts.run.exec = ''
+    ./build/app
+  '';
 
   # https://devenv.sh/basics/
   enterShell = ''
