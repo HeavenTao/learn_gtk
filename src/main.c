@@ -4,25 +4,42 @@
 #include <gtk/gtk.h>
 #include <gtk/gtkshortcut.h>
 
-static void btn_click(GtkButton *btn, GtkWindow *win) { g_print("hello\n"); }
+static void hellobtn_clicked(GtkButton *btn, GtkWindow *win) {
+  const char *s;
+  s = gtk_button_get_label(btn);
+  if (g_strcmp0(s, "hello") == 0) {
+    gtk_button_set_label(btn, "goodbye");
+  } else {
+    gtk_button_set_label(btn, "hello");
+  }
+}
 
-static void app_activate(GApplication *app, gpointer *user_data) {
+static void closebtn_clicked(GtkButton *btn, GtkWindow *win) {
+  gtk_window_destroy(win);
+}
+
+static void app_activate(GApplication *app) {
   GtkWidget *win;
-  GtkWidget *label;
-  GtkWidget *btn;
+  GtkWidget *box;
+  GtkWidget *btn1;
+  GtkWidget *btn2;
 
   win = gtk_window_new();
-  label = gtk_label_new("hello");
-  btn = gtk_button_new();
+  box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+  btn1 = gtk_button_new_with_label("hello");
+  g_signal_connect(btn1, "clicked", G_CALLBACK(hellobtn_clicked), win);
+  btn2 = gtk_button_new_with_label("close");
+  g_signal_connect(btn2, "clicked", G_CALLBACK(closebtn_clicked), win);
 
-  g_signal_connect(btn, "clicked", G_CALLBACK(btn_click), win);
+  gtk_box_set_homogeneous(GTK_BOX(box), TRUE);
+  gtk_box_append(GTK_BOX(box), btn1);
+  gtk_box_append(GTK_BOX(box), btn2);
 
-  gtk_button_set_child(GTK_BUTTON(btn), label);
+  gtk_window_set_child(GTK_WINDOW(win), box);
 
   gtk_window_set_application(GTK_WINDOW(win), GTK_APPLICATION(app));
   gtk_window_set_title(GTK_WINDOW(win), "HelloWorld");
   gtk_window_set_default_size(GTK_WINDOW(win), 500, 400);
-  gtk_window_set_child(GTK_WINDOW(win), btn);
   gtk_window_present(GTK_WINDOW(win));
 
   g_print("GtkApplication is created");
