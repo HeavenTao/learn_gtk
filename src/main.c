@@ -1,56 +1,64 @@
 #include <gio/gio.h>
 #include <glib-object.h>
 #include <glib.h>
+#include <glibconfig.h>
 #include <gtk/gtk.h>
 #include <gtk/gtkshortcut.h>
 
-static void hellobtn_clicked(GtkButton *btn, GtkWindow *win) {
-  const char *s;
-  s = gtk_button_get_label(btn);
-  if (g_strcmp0(s, "hello") == 0) {
-    gtk_button_set_label(btn, "goodbye");
-  } else {
-    gtk_button_set_label(btn, "hello");
-  }
-}
-
-static void closebtn_clicked(GtkButton *btn, GtkWindow *win) {
-  gtk_window_destroy(win);
-}
-
 static void app_activate(GApplication *app) {
+  g_printerr("You need a file argument\n");
+}
+
+static void app_open(GApplication *app, GFile **files, int n_files,
+                     char *hint) {
   GtkWidget *win;
-  GtkWidget *box;
-  GtkWidget *btn1;
-  GtkWidget *btn2;
+  GtkWidget *tv;
+  GtkTextBuffer *tb;
+  GtkWidget *scrollwin;
 
-  win = gtk_window_new();
-  box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-  btn1 = gtk_button_new_with_label("hello");
-  g_signal_connect(btn1, "clicked", G_CALLBACK(hellobtn_clicked), win);
-  btn2 = gtk_button_new_with_label("close");
-  g_signal_connect(btn2, "clicked", G_CALLBACK(closebtn_clicked), win);
+  char *contents;
+  gsize length;
+  char *filename_bin, *filename_utf8;
+  GError *err = NULL;
 
-  gtk_box_set_homogeneous(GTK_BOX(box), TRUE);
-  gtk_box_append(GTK_BOX(box), btn1);
-  gtk_box_append(GTK_BOX(box), btn2);
+  scrollwin = gtk_scrolled_window_new();
 
-  gtk_window_set_child(GTK_WINDOW(win), box);
-
-  gtk_window_set_application(GTK_WINDOW(win), GTK_APPLICATION(app));
-  gtk_window_set_title(GTK_WINDOW(win), "HelloWorld");
+  win = gtk_application_window_new(GTK_APPLICATION(app));
+  gtk_window_set_title(GTK_WINDOW(win), "hello");
   gtk_window_set_default_size(GTK_WINDOW(win), 500, 400);
-  gtk_window_present(GTK_WINDOW(win));
 
-  g_print("GtkApplication is created");
+  tv = gtk_text_view_new();
+  tb = gtk_text_view_get_buffer(GTK_TEXT_VIEW(tv));
+  gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(tv), GTK_WRAP_WORD_CHAR);
+  gtk_text_view_set_editable(GTK_TEXT_VIEW(tv), FALSE);
+
+  gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrollwin), tv);
+  gtk_window_set_child(GTK_WINDOW(win), scrollwin);
+
+  if (g_file_load_contents(files[0], NULL, &contents, &length, NULL, &err)) {
+    gtk_text_buffer_set_text(GTK_TEXT_BUFFER(tb), contents, length);
+    g_free(contents);
+    if ((filename_bin = g_file_get_basename(files[0])) != NULL) {
+      filename_utf8 = g_filename_display_basename(filename_bin);
+      gtk_window_set_title(GTK_WINDOW(win), filename_utf8);
+      g_free(filename_bin);
+      g_free(filename_utf8);
+    }
+    gtk_window_present(GTK_WINDOW(win));
+  } else {
+    g_printerr("%s.\n", err->message);
+    g_error_free(err);
+    gtk_window_destroy(GTK_WINDOW(win));
+  }
 }
 
 int main(int argc, char **argv) {
   GtkApplication *app;
   int stat;
   app = gtk_application_new("com.github.heaventao.myapp",
-                            G_APPLICATION_DEFAULT_FLAGS);
+                            G_APPLICATION_HANDLES_OPEN);
   g_signal_connect(app, "activate", G_CALLBACK(app_activate), NULL);
+  g_signal_connect(app, "open", G_CALLBACK(app_open), NULL);
   stat = g_application_run(G_APPLICATION(app), argc, argv);
   g_application_run(G_APPLICATION(app), argc, argv);
 
