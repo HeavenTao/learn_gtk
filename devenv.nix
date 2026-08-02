@@ -35,7 +35,7 @@
   '';
 
   scripts.run.exec = ''
-    ./build/app
+    ./build/app "$1"
   '';
 
   # https://devenv.sh/basics/
