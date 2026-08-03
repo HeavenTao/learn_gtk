@@ -14,41 +14,52 @@ static void app_open(GApplication *app, GFile **files, int n_files,
   GtkWidget *win;
   GtkWidget *tv;
   GtkTextBuffer *tb;
-  GtkWidget *scrollwin;
+  GtkWidget *scr;
+  GtkWidget *nb;
+  GtkWidget *lab;
+  GtkNotebookPage *nbp;
 
   char *contents;
   gsize length;
   char *filename_bin, *filename_utf8;
   GError *err = NULL;
-
-  scrollwin = gtk_scrolled_window_new();
+  int i = 0;
 
   win = gtk_application_window_new(GTK_APPLICATION(app));
   gtk_window_set_title(GTK_WINDOW(win), "hello");
   gtk_window_set_default_size(GTK_WINDOW(win), 500, 400);
+  nb = gtk_notebook_new();
+  gtk_window_set_child(GTK_WINDOW(win), nb);
 
-  tv = gtk_text_view_new();
-  tb = gtk_text_view_get_buffer(GTK_TEXT_VIEW(tv));
-  gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(tv), GTK_WRAP_WORD_CHAR);
-  gtk_text_view_set_editable(GTK_TEXT_VIEW(tv), FALSE);
+  for (i = 0; i < n_files; i++) {
+    if (g_file_load_contents(files[i], NULL, &contents, &length, NULL, &err)) {
+      scr = gtk_scrolled_window_new();
+      tv = gtk_text_view_new();
+      tb = gtk_text_view_get_buffer(GTK_TEXT_VIEW(tv));
+      gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(tv), GTK_WRAP_WORD);
+      gtk_text_view_set_editable(GTK_TEXT_VIEW(tv), FALSE);
+      gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scr), tv);
 
-  gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrollwin), tv);
-  gtk_window_set_child(GTK_WINDOW(win), scrollwin);
-
-  if (g_file_load_contents(files[0], NULL, &contents, &length, NULL, &err)) {
-    gtk_text_buffer_set_text(GTK_TEXT_BUFFER(tb), contents, length);
-    g_free(contents);
-    if ((filename_bin = g_file_get_basename(files[0])) != NULL) {
-      filename_utf8 = g_filename_display_basename(filename_bin);
-      gtk_window_set_title(GTK_WINDOW(win), filename_utf8);
+      gtk_text_buffer_set_text(tb, contents, length);
+      g_free(contents);
+      filename_bin = g_file_get_basename(files[i]);
+      filename_utf8 = g_filename_display_name(filename_bin);
+      lab = gtk_label_new(filename_utf8);
       g_free(filename_bin);
       g_free(filename_utf8);
+      gtk_notebook_append_page(GTK_NOTEBOOK(nb), scr, lab);
+      nbp = gtk_notebook_get_page(GTK_NOTEBOOK(nb), scr);
+      g_object_set(nbp, "tab-expand", TRUE, NULL);
+    } else {
+      g_printerr("%s\n", err->message);
+      g_clear_error(&err);
     }
-    gtk_window_present(GTK_WINDOW(win));
-  } else {
-    g_printerr("%s.\n", err->message);
-    g_error_free(err);
-    gtk_window_destroy(GTK_WINDOW(win));
+
+    if (gtk_notebook_get_n_pages(GTK_NOTEBOOK(nb)) > 0) {
+      gtk_window_present(GTK_WINDOW(win));
+    } else {
+      gtk_window_destroy(GTK_WINDOW(win));
+    }
   }
 }
 
