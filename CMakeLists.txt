@@ -22,7 +22,8 @@ endif()
 add_compile_options(-Wall -Wextra)
 
 # 编译 src/main.c
-add_executable(app src/main.c)
+# add_executable(app src/main.c)
+add_executable(app src/main2.c)
 
 # 可选：GTK4 支持（本环境 devenv 已安装 gtk4）
 # 如需使用 GTK4，取消下面注释
