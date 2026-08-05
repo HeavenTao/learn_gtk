@@ -1,6 +1,17 @@
 #include <glib-object.h>
 #include <glib.h>
 
+typedef struct _TDoubleClass TDoubleClass;
+struct _TDoubleClass {
+  GObjectClass parent_class;
+};
+
+typedef struct _TDouble TDouble;
+struct _TDouble {
+  GObject parent;
+  double value;
+};
+
 static void show_ref_count(GObject *instance) {
   if (G_IS_OBJECT(instance)) {
     g_print("Ref count is %d\n", instance->ref_count);
