@@ -1,6 +1,8 @@
 #include <glib-object.h>
 #include <glib.h>
 
+#define T_DOUBLE_TYPE (t_double_get_type())
+
 typedef struct _TDoubleClass TDoubleClass;
 struct _TDoubleClass {
   GObjectClass parent_class;
@@ -12,30 +14,31 @@ struct _TDouble {
   double value;
 };
 
-static void show_ref_count(GObject *instance) {
-  if (G_IS_OBJECT(instance)) {
-    g_print("Ref count is %d\n", instance->ref_count);
-  } else {
-    g_print("Instance is not object");
-  }
-}
+static void t_double_class_init(TDoubleClass *class) {}
+
+static void t_double_init(TDouble *ins) {}
+
+G_DEFINE_TYPE(TDouble, t_double, G_TYPE_OBJECT);
 
 int main() {
-  GObject *instance;
+  GType dtype;
+  TDouble *d;
 
-  instance = g_object_new(G_TYPE_OBJECT, NULL);
+  dtype = t_double_get_type();
+  if (dtype) {
+    g_print("RegisterClass was success!");
+  } else {
+    g_print("Reg fail");
+  }
 
-  show_ref_count(instance);
+  d = g_object_new(T_DOUBLE_TYPE, NULL);
+  if (d) {
+    g_print("instance init success!");
+  } else {
+    g_print("instance init fail");
+  }
 
-  g_object_ref(instance);
+  g_object_unref(d);
 
-  show_ref_count(instance);
-
-  g_object_unref(instance);
-
-  show_ref_count(instance);
-
-  g_object_unref(instance);
-
-  show_ref_count(instance);
+  return 0;
 }
