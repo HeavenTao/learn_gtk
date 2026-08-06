@@ -9,3 +9,5 @@ gboolean t_double_get_value(TDouble *self, double *value);
 void t_double_set_value(TDouble *self, double value);
 
 TDouble *t_double_new(double value);
+
+TDouble *t_double_add(TDouble *self, TDouble *other);

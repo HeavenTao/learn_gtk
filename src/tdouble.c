@@ -7,7 +7,11 @@ struct _TDouble {
   double value;
 };
 
-static void t_double_class_init(TDoubleClass *class) {}
+static void t_double_class_init(TDoubleClass *class) {
+  g_signal_new("div-by-zero", G_TYPE_FROM_CLASS(class),
+               G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS, 0,
+               NULL, NULL, NULL, G_TYPE_NONE, 0);
+}
 
 static void t_double_init(TDouble *ins) {}
 
@@ -34,4 +38,17 @@ TDouble *t_double_new(double value) {
   d->value = value;
 
   return d;
+}
+
+TDouble *t_double_add(TDouble *self, TDouble *other) {
+  g_return_val_if_fail(T_IS_DOUBLE(self), NULL);
+  g_return_val_if_fail(T_IS_DOUBLE(other), NULL);
+
+  double value;
+
+  if (!t_double_get_value(other, &value)) {
+    return NULL;
+  }
+
+  return t_double_new(self->value + value);
 }
