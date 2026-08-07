@@ -7,10 +7,12 @@ struct _TDouble {
   double value;
 };
 
+static guint t_double_signal;
 static void t_double_class_init(TDoubleClass *class) {
-  g_signal_new("div-by-zero", G_TYPE_FROM_CLASS(class),
-               G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS, 0,
-               NULL, NULL, NULL, G_TYPE_NONE, 0);
+  t_double_signal =
+      g_signal_new("div-by-zero", G_TYPE_FROM_CLASS(class),
+                   G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
+                   0, NULL, NULL, NULL, G_TYPE_NONE, 0);
 }
 
 static void t_double_init(TDouble *ins) {}
@@ -40,15 +42,55 @@ TDouble *t_double_new(double value) {
   return d;
 }
 
+#define t_double_binary_op(op)                                                 \
+  if (!t_double_get_value(other, &value))                                      \
+    return NULL;                                                               \
+  return t_double_new(self->value op value);
+
 TDouble *t_double_add(TDouble *self, TDouble *other) {
+  g_return_val_if_fail(T_IS_DOUBLE(self), NULL);
+  g_return_val_if_fail(T_IS_DOUBLE(other), NULL);
+  double value;
+
+  t_double_binary_op(+);
+}
+
+TDouble *t_double_sub(TDouble *self, TDouble *other) {
   g_return_val_if_fail(T_IS_DOUBLE(self), NULL);
   g_return_val_if_fail(T_IS_DOUBLE(other), NULL);
 
   double value;
 
-  if (!t_double_get_value(other, &value)) {
+  t_double_binary_op(-);
+}
+
+TDouble *t_double_mul(TDouble *self, TDouble *other) {
+  g_return_val_if_fail(T_IS_DOUBLE(self), NULL);
+  g_return_val_if_fail(T_IS_DOUBLE(other), NULL);
+
+  double value;
+
+  t_double_binary_op(*);
+}
+
+TDouble *t_double_div(TDouble *self, TDouble *other) {
+  g_return_val_if_fail(T_IS_DOUBLE(self), NULL);
+  g_return_val_if_fail(T_IS_DOUBLE(other), NULL);
+
+  double value;
+
+  if ((!t_double_get_value(other, &value))) {
+    return NULL;
+  } else if (value == 0) {
+    g_signal_emit(self, t_double_signal, 0);
     return NULL;
   }
 
-  return t_double_new(self->value + value);
+  return t_double_new(self->value / value);
+}
+
+TDouble *t_double_uminus(TDouble *self) {
+  g_return_val_if_fail(T_IS_DOUBLE(self), NULL);
+
+  return t_double_new(-self->value);
 }
