@@ -1,5 +1,3 @@
-#include "sched.h"
-#include "stdlib.h"
 #include "tdouble.h"
 #include <glib-object.h>
 #include <glib.h>
@@ -20,7 +18,7 @@ static void t_print(char *op, TDouble *d1, TDouble *d2, TDouble *d3) {
 }
 
 static void div_by_zero_cb(TDouble *self, gpointer user_data) {
-  g_printerr("\nError:div by zero.\n\n");
+  g_printerr("\nHandler in main.c.\n\n");
 }
 
 int main() {
@@ -50,7 +48,7 @@ int main() {
     g_object_unref(d3);
   }
 
-  g_signal_connect(d1, "div-by-zero", G_CALLBACK(div_by_zero_cb), NULL);
+  g_signal_connect_after(d1, "div-by-zero", G_CALLBACK(div_by_zero_cb), NULL);
   t_double_set_value(d2, 0);
   if ((d3 = t_double_div(d1, d2)) != NULL) {
     t_print("/", d1, d2, d3);

@@ -7,12 +7,21 @@ struct _TDouble {
   double value;
 };
 
+static void div_by_zero_default_cb(TDouble *self) {
+  g_printerr("\ndiv by zero\n");
+}
+
 static guint t_double_signal;
 static void t_double_class_init(TDoubleClass *class) {
-  t_double_signal =
-      g_signal_new("div-by-zero", G_TYPE_FROM_CLASS(class),
-                   G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
-                   0, NULL, NULL, NULL, G_TYPE_NONE, 0);
+  // t_double_signal =
+  //     g_signal_new("div-by-zero", G_TYPE_FROM_CLASS(class),
+  //                  G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE |
+  //                  G_SIGNAL_NO_HOOKS, 0, NULL, NULL, NULL, G_TYPE_NONE, 0);
+
+  t_double_signal = g_signal_new_class_handler(
+      "div-by-zero", G_TYPE_FROM_CLASS(class),
+      G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
+      G_CALLBACK(div_by_zero_default_cb), NULL, NULL, NULL, G_TYPE_NONE, 0);
 }
 
 static void t_double_init(TDouble *ins) {}
