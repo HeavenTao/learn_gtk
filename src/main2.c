@@ -1,10 +1,11 @@
+#include "sched.h"
+#include "stdlib.h"
 #include "tdouble.h"
 #include <glib-object.h>
 #include <glib.h>
 
 static void t_print(char *op, TDouble *d1, TDouble *d2, TDouble *d3) {
   double v1, v2, v3;
-
   if (!t_double_get_value(d1, &v1)) {
     return;
   }
@@ -18,6 +19,10 @@ static void t_print(char *op, TDouble *d1, TDouble *d2, TDouble *d3) {
   g_print("%lf %s %lf=%lf", v1, op, v2, v3);
 }
 
+static void div_by_zero_cb(TDouble *self, gpointer user_data) {
+  g_printerr("\nError:div by zero.\n\n");
+}
+
 int main() {
   TDouble *d1, *d2, *d3;
   double v1, v3;
@@ -27,5 +32,39 @@ int main() {
 
   if ((d3 = t_double_add(d1, d2)) != NULL) {
     t_print("+", d1, d2, d3);
+    g_object_unref(d3);
   }
+
+  if ((d3 = t_double_sub(d1, d2)) != NULL) {
+    t_print("-", d1, d2, d3);
+    g_object_unref(d3);
+  }
+
+  if ((d3 = t_double_mul(d1, d2)) != NULL) {
+    t_print("*", d1, d2, d3);
+    g_object_unref(d3);
+  }
+
+  if ((d3 = t_double_div(d1, d2)) != NULL) {
+    t_print("/", d1, d2, d3);
+    g_object_unref(d3);
+  }
+
+  g_signal_connect(d1, "div-by-zero", G_CALLBACK(div_by_zero_cb), NULL);
+  t_double_set_value(d2, 0);
+  if ((d3 = t_double_div(d1, d2)) != NULL) {
+    t_print("/", d1, d2, d3);
+    g_object_unref(d3);
+  }
+
+  if ((d3 = t_double_uminus(d1)) != NULL && (t_double_get_value(d1, &v1)) &&
+      (t_double_get_value(d3, &v3))) {
+    g_print("-%lf=%lf\n", v1, v3);
+    g_object_unref(d3);
+  }
+
+  g_object_unref(d1);
+  g_object_unref(d2);
+
+  return 0;
 }
