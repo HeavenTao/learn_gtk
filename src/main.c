@@ -119,13 +119,13 @@ static void app_open(GApplication *app, GFile **files, int n_files,
       g_printerr("%s\n", err->message);
       g_clear_error(&err);
     }
+  }
 
-    if (gtk_notebook_get_n_pages(GTK_NOTEBOOK(nb)) > 0) {
-      g_signal_connect(win, "close-request", G_CALLBACK(before_close), nb);
-      gtk_window_present(GTK_WINDOW(win));
-    } else {
-      gtk_window_destroy(GTK_WINDOW(win));
-    }
+  if (gtk_notebook_get_n_pages(GTK_NOTEBOOK(nb)) > 0) {
+    g_signal_connect(win, "close-request", G_CALLBACK(before_close), nb);
+    gtk_window_present(GTK_WINDOW(win));
+  } else {
+    gtk_window_destroy(GTK_WINDOW(win));
   }
 }
 
