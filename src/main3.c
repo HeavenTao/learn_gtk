@@ -1,6 +1,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#define HELLO 100
+
 static int myf(int count, ...) {
 
   va_list ap;
@@ -17,4 +19,6 @@ static int myf(int count, ...) {
 int main() {
   int x = myf(4, 6, 7, 8, 9);
   printf("%d", x);
+
+  printf("%d", HELLO);
 }
