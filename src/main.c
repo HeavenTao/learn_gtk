@@ -62,8 +62,8 @@ static gboolean before_close(GtkWindow *win, GtkWidget *nb) {
     gtk_text_buffer_get_bounds(tb, &start_iter, &end_iter);
     contents = gtk_text_buffer_get_text(tb, &start_iter, &end_iter, FALSE);
     if (file &&
-        g_file_replace_contents(file, contents, strlen(contents), NULL, FALSE,
-                                G_FILE_CREATE_NONE, NULL, NULL, &err)) {
+        !g_file_replace_contents(file, contents, strlen(contents), NULL, FALSE,
+                                 G_FILE_CREATE_NONE, NULL, NULL, &err)) {
       g_printerr("%s\n", err->message);
       g_clear_error(&err);
     }
@@ -137,7 +137,6 @@ int main(int argc, char **argv) {
   g_signal_connect(app, "activate", G_CALLBACK(app_activate), NULL);
   g_signal_connect(app, "open", G_CALLBACK(app_open), NULL);
   stat = g_application_run(G_APPLICATION(app), argc, argv);
-  g_application_run(G_APPLICATION(app), argc, argv);
 
   g_object_unref(app);
 
