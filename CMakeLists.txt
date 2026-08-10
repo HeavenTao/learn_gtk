@@ -1,33 +1,20 @@
+# 指定 CMake 的最低版本要求（低于此版本会报错）
 cmake_minimum_required(VERSION 3.16)
 
-# 导出编译数据库，供 clangd 使用（解决头文件被按 C++ 误解析的问题）
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# 定义工程名称（app），同时隐式设置 C/C++ 编译语言
+project(app)
 
-# 指定使用 clang 编译（必须在 project() 之前设置）
-set(CMAKE_C_COMPILER clang)
+# 查找 PkgConfig 工具（用于定位系统库的编译参数）
+find_package(PkgConfig REQUIRED)
 
-project(learn_gtk C)
+# 通过 pkg-config 查找 GTK4 库，并生成一个名为 GTK4 的 IMPORTED 目标
+# IMPORTED_TARGET 使链接时自动带上头文件路径和链接库
+pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
 
-# C 标准
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
-
-# 默认构建类型
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Debug)
-endif()
-
-# 常见警告
-add_compile_options(-Wall -Wextra)
-
-# 编译 src/main.c
-# add_executable(app src/main.c)
-# add_executable(app src/main2.c src/tdouble.c)
+# 由 src/main.c 编译生成可执行文件 app
 add_executable(app src/main3.c)
 
-# 可选：GTK4 支持（本环境 devenv 已安装 gtk4）
-# 如需使用 GTK4，取消下面注释
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
+# 将 GTK4 库链接到 app 目标（PRIVATE 表示仅 app 自身使用，不对外传播）
 target_link_libraries(app PRIVATE PkgConfig::GTK4)
+
+target_compile_options(app PRIVATE -O0)
