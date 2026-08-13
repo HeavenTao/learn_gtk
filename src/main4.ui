@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <object class="App">
+  <object class="GtkApplicationWindow" id="win">
+    <property name="title">file editor</property>
+    <property name="default-width">600</property>
+    <property name="default-height">400</property>
   </object>
 </interface>
