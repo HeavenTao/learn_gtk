@@ -50,30 +50,6 @@
           <object class="GtkNotebook" id="nb">
             <property name="hexpand">1</property>
             <property name="vexpand">1</property>
-            <child>
-              <object class="GtkScrolledWindow">
-                <property name="child">
-                  <object class="GtkTextView"/>
-                </property>
-              </object>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel">
-                <property name="label">file-1</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkScrolledWindow">
-                <property name="child">
-                  <object class="GtkTextView"/>
-                </property>
-              </object>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel">
-                <property name="label">file-2</property>
-              </object>
-            </child>
           </object>
         </child>
       </object>

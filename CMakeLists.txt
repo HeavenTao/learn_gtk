@@ -12,7 +12,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
 
 # 由 src/main.c 编译生成可执行文件 app
-add_executable(app src/main4.c)
+add_executable(app src/main.c src/tfetextview.c src/resources.c)
 
 # 将 GTK4 库链接到 app 目标（PRIVATE 表示仅 app 自身使用，不对外传播）
 target_link_libraries(app PRIVATE PkgConfig::GTK4)

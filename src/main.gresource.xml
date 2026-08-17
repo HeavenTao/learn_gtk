@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/heaventao/myapp">
-    <file>main4.ui</file>
+    <file>main.ui</file>
   </gresource>
 </gresources>
