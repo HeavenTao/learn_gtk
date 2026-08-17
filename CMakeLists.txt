@@ -11,8 +11,29 @@ find_package(PkgConfig REQUIRED)
 # IMPORTED_TARGET 使链接时自动带上头文件路径和链接库
 pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
 
-# 由 src/main.c 编译生成可执行文件 app
-add_executable(app src/main.c src/tfetextview.c src/resources.c)
+# 查找 glib-compile-resources 工具（GTK/GLib 自带，用于把 .ui 等资源编译成 C 文件）
+find_program(GLIB_COMPILE_RESOURCES glib-compile-resources)
+if(NOT GLIB_COMPILE_RESOURCES)
+  message(FATAL_ERROR "glib-compile-resources not found")
+endif()
+
+# 每次构建时，把 main.gresource.xml 和 main.ui 编译成 C 文件 resources.c
+# 生成在 build 目录下（不污染源码目录），main.ui 有改动时会自动重新生成
+set(RESOURCES_C ${CMAKE_SOURCE_DIR}/src/resources.c)
+add_custom_command(
+  OUTPUT ${RESOURCES_C}
+  COMMAND ${GLIB_COMPILE_RESOURCES}
+          ${CMAKE_SOURCE_DIR}/src/main.gresource.xml
+          --sourcedir ${CMAKE_SOURCE_DIR}/src
+          --target ${RESOURCES_C}
+          --generate-source
+  DEPENDS ${CMAKE_SOURCE_DIR}/src/main.gresource.xml
+          ${CMAKE_SOURCE_DIR}/src/main.ui
+  VERBATIM
+)
+
+# 由 src/main.c 编译生成可执行文件 app（resources.c 为自动生成文件）
+add_executable(app src/main.c src/tfetextview.c ${RESOURCES_C})
 
 # 将 GTK4 库链接到 app 目标（PRIVATE 表示仅 app 自身使用，不对外传播）
 target_link_libraries(app PRIVATE PkgConfig::GTK4)
