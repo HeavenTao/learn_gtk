@@ -17,8 +17,6 @@ if(NOT GLIB_COMPILE_RESOURCES)
   message(FATAL_ERROR "glib-compile-resources not found")
 endif()
 
-# 每次构建时，把 main.gresource.xml 和 main.ui 编译成 C 文件 resources.c
-# 生成在 build 目录下（不污染源码目录），main.ui 有改动时会自动重新生成
 set(RESOURCES_C ${CMAKE_SOURCE_DIR}/src/resources.c)
 add_custom_command(
   OUTPUT ${RESOURCES_C}
