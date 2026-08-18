@@ -4,6 +4,9 @@ cmake_minimum_required(VERSION 3.16)
 # 定义工程名称（app），同时隐式设置 C/C++ 编译语言
 project(app)
 
+# 导出 compile_commands.json，供 clangd 等工具获取真实编译参数
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # 查找 PkgConfig 工具（用于定位系统库的编译参数）
 find_package(PkgConfig REQUIRED)
 
@@ -36,4 +39,10 @@ add_executable(app src/main.c src/tfetextview.c ${RESOURCES_C})
 # 将 GTK4 库链接到 app 目标（PRIVATE 表示仅 app 自身使用，不对外传播）
 target_link_libraries(app PRIVATE PkgConfig::GTK4)
 
-target_compile_options(app PRIVATE -O0)
+# -w 关闭所有编译警告，编译时只显示错误信息
+# -O0 关闭优化，便于调试
+# -g 生成调试信息
+# -fdiagnostics-color=always 让错误信息带颜色，更容易区分
+# -Werror 将警告视为错误（如需强制消除警告可取消注释）
+target_compile_options(app PRIVATE -w -O0 -g -fdiagnostics-color=always)
+# target_compile_options(app PRIVATE -Werror)
