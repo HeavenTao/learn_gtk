@@ -89,6 +89,7 @@ static void app_open(GApplication *app, GFile **files, int n_files,
   gtk_window_set_default_size(GTK_WINDOW(win), 500, 400);
   gtk_window_set_application(GTK_WINDOW(win), GTK_APPLICATION(app));
   nb = GTK_WIDGET(gtk_builder_get_object(build, "nb"));
+  g_object_unref(build);
 
   /* 逐个打开命令行传入的文件 */
   for (i = 0; i < n_files; i++) {

@@ -1,10 +1,16 @@
 #include "tfetextview.h"
+#include <gio/gio.h>
+#include <glib-object.h>
+#include <glib.h>
+#include <glibconfig.h>
+#include <gtk/gtk.h>
 
 struct _TfeTextView {
   GtkTextView parent;
   GFile *file;
 };
 
+G_DEFINE_QUARK(tfe - text - view - error - quark, tfe_text_view_error);
 G_DEFINE_FINAL_TYPE(TfeTextView, tfe_text_view, GTK_TYPE_TEXT_VIEW);
 
 static void tfe_text_view_dispose(GObject *object) {
@@ -41,4 +47,39 @@ GFile *tfe_text_view_get_file(TfeTextView *tv) { return tv->file; }
 /* 创建并返回一个新的 TfeTextView 控件（包装 g_object_new） */
 GtkWidget *tfe_text_view_new(void) {
   return GTK_WIDGET(g_object_new(TFE_TYPE_TEXT_VIEW, NULL));
+}
+
+void tfe_error_alert(GtkWindow *win, GError *err) {
+  GtkAlertDialog *alert_dialog;
+
+  alert_dialog = gtk_alert_dialog_new("%s", err->message);
+  gtk_alert_dialog_show(alert_dialog, win);
+  g_object_unref(alert_dialog);
+}
+
+gboolean tfe_text_view_write(TfeTextView *tv, GError **err) {
+  g_return_val_if_fail(TFE_IS_TEXT_VIEW(tv), FALSE);
+  g_return_val_if_fail((err == NULL || *err == NULL), FALSE);
+
+  GtkTextBuffer *tb = gtk_text_view_get_buffer(GTK_TEXT_VIEW(tv));
+  GtkTextIter start_iter;
+  GtkTextIter end_iter;
+  char *content;
+  gboolean stat;
+
+  if (!G_IS_FILE(tv->file)) {
+    g_set_error_literal(err, TFE_TEXT_VIEW_ERROR, TFE_TEXT_VIEW_ERROR_NO_FILE,
+                        "No file is set in tfeTextView");
+    return FALSE;
+  }
+
+  gtk_text_buffer_get_bounds(tb, &start_iter, &end_iter);
+  content = gtk_text_buffer_get_text(tb, &start_iter, &end_iter, FALSE);
+  stat = g_file_replace_contents(tv->file, content, strlen(content), NULL, TRUE,
+                                 G_FILE_CREATE_NONE, NULL, NULL, err);
+  g_free(content);
+  if (stat) {
+    gtk_text_buffer_set_modified(tb, FALSE);
+  }
+  return stat;
 }
