@@ -19,9 +19,6 @@
 
 /* activate 信号回调：当应用被激活（如点击图标启动）时触发。
  * 本程序通过 "open" 信号打开文件，因此这里只提示需要文件参数 */
-static void app_activate(GApplication *app) {
-  g_printerr("You need a file argument\n");
-}
 
 /* close-request 信号回调：窗口请求关闭前调用，把每个标签页的内容保存回文件。
  * 返回 FALSE 表示允许窗口继续关闭 */
@@ -63,75 +60,113 @@ static gboolean before_close(GtkWindow *win, GtkWidget *nb) {
   return FALSE; // 允许窗口关闭
 }
 
-/* open 信号回调：当通过命令行参数打开文件时触发。
- * 为每个文件创建一个新的标签页并显示其内容 */
-static void app_open(GApplication *app, GFile **files, int n_files,
-                     char *hint) {
-  GtkWidget *win;       // 主窗口
-  GtkWidget *tv;        // 文本视图
-  GtkTextBuffer *tb;    // 文本缓冲区
-  GtkWidget *scr;       // 滚动窗口
-  GtkWidget *nb;        // 标签页容器（Notebook）
-  GtkWidget *lab;       // 标签页标题
-  GtkNotebookPage *nbp; // 标签页对象
-  GtkBuilder *build;
+static void tfe_error_alert(GtkWindow *win, GError *err) {
+  GtkAlertDialog *alert_dialog;
+  GtkWindow *parent;
 
-  char *contents;                     // 读取到的文件内容
-  gsize length;                       // 内容长度
-  char *filename_bin, *filename_utf8; // 文件名（原始字节 / 转为 UTF-8）
-  GError *err = NULL;                 // 错误信息
-  int i = 0;                          // 循环变量
-                                      //
+  if (win != NULL && gtk_widget_get_mapped(GTK_WIDGET(win))) {
+    parent = win;
+  } else {
+    parent = NULL;
+  }
+
+  alert_dialog = gtk_alert_dialog_new("%s", err->message);
+  gtk_alert_dialog_show(alert_dialog, parent);
+  g_object_unref(alert_dialog);
+}
+
+static GtkLabel *tfe_label_from_file(GFile *file) {
+  char *baseName = g_file_get_basename(file);
+  char *fileName = g_filename_display_name(baseName);
+
+  GtkWidget *label = gtk_label_new(fileName);
+  return label;
+}
+
+static void notebook_page_new_with_file(GtkNotebook *nb, GFile *file) {
+  g_return_if_fail(GTK_IS_NOTEBOOK(nb));
+  g_return_if_fail(G_IS_FILE(file));
+
+  GtkWidget *win;
+  GtkNotebookPage *nbp;
+  GtkWidget *scr;
+  GtkWidget *tv;
+  GtkWidget *label;
+
+  int i;
+  GError *err = NULL;
+
+  if ((tv = tfe_text_view_new_with_file(file, &err)) == NULL) {
+    win = gtk_widget_get_ancestor(GTK_WIDGET(nb), GTK_TYPE_WINDOW);
+    tfe_error_alert(GTK_WINDOW(win), err);
+    g_clear_error(&err);
+    return;
+  }
+
+  label = tfe_label_from_file(file);
+  scr = gtk_scrolled_window_new();
+  gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scr), GTK_WIDGET(tv));
+  i = gtk_notebook_append_page(nb, scr, label);
+  nbp = gtk_notebook_get_page(nb, scr);
+  g_object_set(nbp, "tab-expand", TRUE, NULL);
+  gtk_notebook_set_current_page(nb, i);
+}
+
+static void open_dialog_cb(GObject *source_object, GAsyncResult *res,
+                           gpointer user_data) {
+  GtkWindow *win = GTK_WINDOW(user_data);
+  GtkFileDialog *dialog = GTK_FILE_DIALOG(source_object);
+  GError *err = NULL;
+  GFile *file;
+  GtkNotebook *nb;
+
+  file = gtk_file_dialog_open_finish(dialog, res, &err);
+
+  if (file == NULL) {
+    if (!g_error_matches(err, GTK_DIALOG_ERROR, GTK_DIALOG_ERROR_DISMISSED)) {
+      tfe_error_alert(GTK_WINDOW(win), err);
+    }
+    g_clear_error(&err);
+    return;
+  }
+
+  /* 复用 app_activate 中已经显示在窗口里的 notebook（存在 win 的数据里） */
+  nb = GTK_NOTEBOOK(g_object_get_data(G_OBJECT(win), "nb"));
+
+  notebook_page_new_with_file(nb, file);
+  g_object_unref(file);
+}
+
+static void open_cb(GtkButton *btn, gpointer user_data) {
+  GtkFileDialog *dialog = gtk_file_dialog_new();
+  GtkWindow *win = GTK_WINDOW(user_data);
+
+  gtk_file_dialog_open(dialog, win, NULL, open_dialog_cb, user_data);
+}
+
+static void app_activate(GApplication *app) {
+  GtkWidget *win; // 主窗口
+  GtkBuilder *build;
+  GtkWidget *btn_open;
+
   /* 创建应用窗口并设置标题、默认大小 */
   build = gtk_builder_new_from_resource("/com/github/heaventao/myapp/main.ui");
   win = GTK_WIDGET(gtk_builder_get_object(build, "win"));
+
   gtk_window_set_title(GTK_WINDOW(win), "hello");
   gtk_window_set_default_size(GTK_WINDOW(win), 500, 400);
   gtk_window_set_application(GTK_WINDOW(win), GTK_APPLICATION(app));
-  nb = GTK_WIDGET(gtk_builder_get_object(build, "nb"));
+
+  btn_open = GTK_WIDGET(gtk_builder_get_object(build, "btn_open"));
+  g_signal_connect(btn_open, "clicked", G_CALLBACK(open_cb), win);
+
+  /* 把 notebook 保存在窗口数据中，供 open_dialog_cb 复用 */
+  g_object_set_data(G_OBJECT(win), "nb",
+                    gtk_builder_get_object(build, "nb"));
+
   g_object_unref(build);
 
-  /* 逐个打开命令行传入的文件 */
-  for (i = 0; i < n_files; i++) {
-    /* 读取文件内容到内存；成功才继续 */
-    if (g_file_load_contents(files[i], NULL, &contents, &length, NULL, &err)) {
-      scr = gtk_scrolled_window_new();                  // 创建滚动窗口
-      tv = tfe_text_view_new();                         // 创建自定义文本视图
-      tb = gtk_text_view_get_buffer(GTK_TEXT_VIEW(tv)); // 获取缓冲区
-      gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(tv),
-                                  GTK_WRAP_WORD);          // 按单词换行
-      gtk_text_view_set_editable(GTK_TEXT_VIEW(tv), TRUE); // 允许编辑
-      gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scr),
-                                    tv); // 文本视图放进滚动窗口
-
-      tfe_text_view_set_file(TFE_TEXT_VIEW(tv), files[i]); // 关联文件
-      gtk_text_buffer_set_text(tb, contents, length); // 把文件内容填入缓冲区
-      g_free(contents);                               // 释放读取的内容
-      filename_bin = g_file_get_basename(files[i]);   // 取文件名（不含路径）
-      filename_utf8 =
-          g_filename_display_name(filename_bin); // 转为适合显示的 UTF-8 形式
-      lab = gtk_label_new(filename_utf8);        // 创建标签页标题
-      g_free(filename_bin);
-      g_free(filename_utf8);
-      gtk_notebook_append_page(GTK_NOTEBOOK(nb), scr,
-                               lab);                      // 把页面加入 Notebook
-      nbp = gtk_notebook_get_page(GTK_NOTEBOOK(nb), scr); // 获取页面对象
-      g_object_set(nbp, "tab-expand", TRUE,
-                   NULL); // 设置标签横向铺满，便于多页显示
-    } else {
-      g_printerr("%s\n", err->message); // 读取失败，打印错误
-      g_clear_error(&err);
-    }
-  }
-
-  /* 若至少成功打开了一个文件，则连接关闭窗口信号并显示窗口；
-   * 否则销毁窗口 */
-  if (gtk_notebook_get_n_pages(GTK_NOTEBOOK(nb)) > 0) {
-    g_signal_connect(win, "close-request", G_CALLBACK(before_close), nb);
-    gtk_window_present(GTK_WINDOW(win));
-  } else {
-    gtk_window_destroy(GTK_WINDOW(win));
-  }
+  gtk_window_present(GTK_WINDOW(win));
 }
 
 /* 程序入口 */
@@ -143,10 +178,10 @@ int main(int argc, char **argv) {
   /* 创建 GTK 应用，application id 为 com.github.heaventao.myapp，
    * G_APPLICATION_HANDLES_OPEN 表示应用通过打开文件的方式启动 */
   app = gtk_application_new("com.github.heaventao.myapp",
-                            G_APPLICATION_HANDLES_OPEN);
+                            G_APPLICATION_DEFAULT_FLAGS);
   /* 连接 activate 和 open 信号到对应的回调函数 */
   g_signal_connect(app, "activate", G_CALLBACK(app_activate), NULL);
-  g_signal_connect(app, "open", G_CALLBACK(app_open), NULL);
+  // g_signal_connect(app, "open", G_CALLBACK(app_open), NULL);
   stat = g_application_run(G_APPLICATION(app), argc, argv); // 运行应用主循环
 
   g_object_unref(app); // 释放应用对象
