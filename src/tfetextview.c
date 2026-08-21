@@ -1,5 +1,9 @@
 #include "tfetextview.h"
+#include <gio/gio.h>
+#include <glib-object.h>
+#include <glib.h>
 #include <gtk/gtk.h>
+#include <gtk/gtkshortcut.h>
 
 struct _TfeTextView {
   GtkTextView parent;
@@ -71,9 +75,28 @@ gboolean tfe_text_view_write(TfeTextView *tv, GError **err) {
 
 /* 创建并返回一个新的 TfeTextView 控件（包装 g_object_new） */
 GtkWidget *tfe_text_view_new(void) {
-  return GTK_WIDGET(g_object_new(TFE_TYPE_TEXT_VIEW, NULL));
+  return GTK_WIDGET(
+      g_object_new(TFE_TYPE_TEXT_VIEW, "warp-mode", GTK_WRAP_WORD_CHAR, NULL));
 }
 
 GtkWidget *tfe_text_view_new_with_file(GFile *file, GError **err) {
+  g_return_val_if_fail(G_IS_FILE(file) || file == NULL, NULL);
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
+
+  GtkWidget *tv;
+
+  tv = tfe_text_view_new();
+
+  if (file == NULL) {
+    return tv;
+  }
+
+  tfe_text_view_set_file(tv, file);
+  if (tfe_text_view_read(tv, err)) {
+    return tv;
+  }
+
+  g_object_ref_sink(tv);
+  g_object_unref(tv);
   return NULL;
 }
