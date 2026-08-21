@@ -1,8 +1,4 @@
 #include "tfetextview.h"
-#include <gio/gio.h>
-#include <glib-object.h>
-#include <glib.h>
-#include <glibconfig.h>
 #include <gtk/gtk.h>
 
 struct _TfeTextView {
@@ -44,18 +40,7 @@ void tfe_text_view_set_file(TfeTextView *tv, GFile *file) {
 /* 获取该文本视图关联的文件 */
 GFile *tfe_text_view_get_file(TfeTextView *tv) { return tv->file; }
 
-/* 创建并返回一个新的 TfeTextView 控件（包装 g_object_new） */
-GtkWidget *tfe_text_view_new(void) {
-  return GTK_WIDGET(g_object_new(TFE_TYPE_TEXT_VIEW, NULL));
-}
-
-void tfe_error_alert(GtkWindow *win, GError *err) {
-  GtkAlertDialog *alert_dialog;
-
-  alert_dialog = gtk_alert_dialog_new("%s", err->message);
-  gtk_alert_dialog_show(alert_dialog, win);
-  g_object_unref(alert_dialog);
-}
+gboolean tfe_text_view_read(TfeTextView *tv, GError **err) { return FALSE; }
 
 gboolean tfe_text_view_write(TfeTextView *tv, GError **err) {
   g_return_val_if_fail(TFE_IS_TEXT_VIEW(tv), FALSE);
@@ -82,4 +67,13 @@ gboolean tfe_text_view_write(TfeTextView *tv, GError **err) {
     gtk_text_buffer_set_modified(tb, FALSE);
   }
   return stat;
+}
+
+/* 创建并返回一个新的 TfeTextView 控件（包装 g_object_new） */
+GtkWidget *tfe_text_view_new(void) {
+  return GTK_WIDGET(g_object_new(TFE_TYPE_TEXT_VIEW, NULL));
+}
+
+GtkWidget *tfe_text_view_new_with_file(GFile *file, GError **err) {
+  return NULL;
 }

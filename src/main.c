@@ -81,7 +81,7 @@ static void app_open(GApplication *app, GFile **files, int n_files,
   char *filename_bin, *filename_utf8; // 文件名（原始字节 / 转为 UTF-8）
   GError *err = NULL;                 // 错误信息
   int i = 0;                          // 循环变量
-
+                                      //
   /* 创建应用窗口并设置标题、默认大小 */
   build = gtk_builder_new_from_resource("/com/github/heaventao/myapp/main.ui");
   win = GTK_WIDGET(gtk_builder_get_object(build, "win"));
