@@ -32,13 +32,14 @@ static void tfe_text_view_class_init(TfeTextViewClass *class) {
 }
 
 void tfe_text_view_set_file(TfeTextView *tv, GFile *file) {
-  if (tv->file) {
-    g_object_unref(tv->file); // 释放旧文件引用
-  }
-  if (file) {
-    g_object_ref(file); // 增加新文件引用
-  }
-  tv->file = file;
+  g_return_if_fail(TFE_IS_TEXT_VIEW(tv));
+  g_return_if_fail(G_IS_FILE(file) || file == NULL);
+
+  GtkTextBuffer *tb = gtk_text_view_get_buffer(GTK_TEXT_VIEW(tv));
+
+  g_set_object(&tv->file, file);
+
+  gtk_text_buffer_set_modified(tb, TRUE);
 }
 
 /* 获取该文本视图关联的文件 */
