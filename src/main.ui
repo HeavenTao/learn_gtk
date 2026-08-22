@@ -15,12 +15,12 @@
               </object>
             </child>
             <child>
-              <object class="GtkButton">
+              <object class="GtkButton" id="btnn">
                 <property name="label">New</property>
               </object>
             </child>
             <child>
-              <object class="GtkButton" id="btn_open">
+              <object class="GtkButton" id="btno">
                 <property name="label">Open</property>
               </object>
             </child>
@@ -30,12 +30,12 @@
               </object>
             </child>
             <child>
-              <object class="GtkButton" id="btn_save">
+              <object class="GtkButton" id="btns">
                 <property name="label">Save</property>
               </object>
             </child>
             <child>
-              <object class="GtkButton">
+              <object class="GtkButton" id="btnc">
                 <property name="label">Close</property>
               </object>
             </child>
