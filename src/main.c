@@ -156,6 +156,88 @@ static void open_dialog_cb(GObject *source_object, GAsyncResult *res, gpointer u
     g_object_unref(file);
 }
 
+static void save_dialog_cb(GObject *source_object, GAsyncResult *res, gpointer user_data)
+{
+    GtkFileDialog *dialog = GTK_FILE_DIALOG(source_object);
+    GtkWidget *tv = GTK_WIDGET(user_data);
+    GtkWidget *win;
+    GtkWidget *scr;
+    GtkWidget *nb;
+    GtkWidget *label;
+    GFile *file;
+    GError *err = NULL;
+
+    win = gtk_widget_get_ancestor(tv, GTK_TYPE_WINDOW);
+    if ((file = gtk_file_dialog_save_finish(dialog, res, &err)) == NULL)
+    {
+        if (!g_error_matches(err, GTK_DIALOG_ERROR, GTK_DIALOG_ERROR_DISMISSED))
+        {
+            tfe_error_alert(win, err);
+        }
+        g_clear_error(&err);
+        return;
+    }
+
+    tfe_text_view_set_file(TFE_TEXT_VIEW(tv), file);
+    label = tfe_label_from_file(file);
+    nb = gtk_widget_get_ancestor(tv, GTK_TYPE_NOTEBOOK);
+    scr = gtk_widget_get_parent(tv);
+    gtk_notebook_set_tab_label(GTK_NOTEBOOK(nb), scr, label);
+    g_object_unref(file);
+
+    if (!tfe_text_view_write(TFE_TEXT_VIEW(tv), &err))
+    {
+        tfe_error_alert(GTK_WINDOW(win), err);
+        g_clear_error(&err);
+    }
+}
+
+static void save_cb(GtkButton *btn, gpointer user_data)
+{
+    GtkWidget *win;
+    GtkNotebook *nb;
+    GtkWidget *scr;
+    GtkWidget *tv;
+
+    GError *err = NULL;
+
+    GtkFileDialog *file_dialog;
+    GtkAlertDialog *alert_dialog;
+
+    int i;
+
+    win = GTK_WINDOW(user_data);
+    nb = GTK_NOTEBOOK(g_object_get_data(G_OBJECT(win), "nb"));
+
+    i = gtk_notebook_get_current_page(GTK_NOTEBOOK(nb));
+
+    if (i == -1)
+    {
+        alert_dialog = gtk_alert_dialog_new("No Page to Save");
+        gtk_alert_dialog_show(alert_dialog, GTK_WINDOW(win));
+        g_object_unref(alert_dialog);
+        return;
+    }
+
+    scr = gtk_notebook_get_nth_page(GTK_NOTEBOOK(nb), i);
+    tv = gtk_scrolled_window_get_child(GTK_SCROLLED_WINDOW(scr));
+
+    if (tfe_text_view_get_file(TFE_TEXT_VIEW(tv)))
+    {
+        if (!tfe_text_view_write(TFE_TEXT_VIEW(tv), &err))
+        {
+            tfe_error_alert(GTK_WINDOW(win), &err);
+            g_clear_error(&err);
+        }
+    }
+    else
+    {
+        file_dialog = gtk_file_dialog_new();
+        gtk_file_dialog_open(file_dialog, GTK_WINDOW(win), NULL, save_dialog_cb, tv);
+        g_object_unref(file_dialog);
+    }
+}
+
 static void open_cb(GtkButton *btn, gpointer user_data)
 {
     GtkFileDialog *dialog = gtk_file_dialog_new();
@@ -169,6 +251,7 @@ static void app_activate(GApplication *app)
     GtkWidget *win;  // 主窗口
     GtkBuilder *build;
     GtkWidget *btn_open;
+    GtkWidget *btn_save;
 
     /* 创建应用窗口并设置标题、默认大小 */
     build = gtk_builder_new_from_resource("/com/github/heaventao/myapp/main.ui");
@@ -180,6 +263,9 @@ static void app_activate(GApplication *app)
 
     btn_open = GTK_WIDGET(gtk_builder_get_object(build, "btn_open"));
     g_signal_connect(btn_open, "clicked", G_CALLBACK(open_cb), win);
+
+    btn_save = GTK_WIDGET(gtk_builder_get_object(build, "btn_save"));
+    g_signal_connect(btn_save, "clicked", G_CALLBACK(save_cb), win);
 
     /* 把 notebook 保存在窗口数据中，供 open_dialog_cb 复用 */
     g_object_set_data(G_OBJECT(win), "nb", gtk_builder_get_object(build, "nb"));
