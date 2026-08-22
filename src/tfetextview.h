@@ -6,9 +6,10 @@ G_DECLARE_FINAL_TYPE(TfeTextView, tfe_text_view, TFE, TEXT_VIEW, GtkTextView);
 #define TFE_TEXT_VIEW_ERROR (tfe_text_view_error_quark())
 GQuark tfe_text_view_error_quark(void);
 
-typedef enum {
-  TFE_TEXT_VIEW_ERROR_NO_FILE,
-  TFE_TEXT_VIEW_ERROR_FAILED
+typedef enum
+{
+    TFE_TEXT_VIEW_ERROR_NO_FILE,
+    TFE_TEXT_VIEW_ERROR_FAILED
 } TfeTextViewError;
 
 void tfe_text_view_set_file(TfeTextView *tv, GFile *file);
